@@ -1,18 +1,12 @@
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-
 body {
-    background: radial-gradient(circle at top left, #1a2a6c, #203a43, #0f2027);
+    background: radial-gradient(circle at top, #1b2735, #090a0f);
     height: 100vh;
+    margin: 0;
     display: flex;
     justify-content: center;
     align-items: center;
-    font-family: 'Segoe UI', system-ui, sans-serif;
+    font-family: 'Segoe UI', sans-serif;
     color: white;
-    overflow: hidden;
 }
 
 .glass-container {
@@ -21,45 +15,42 @@ body {
     -webkit-backdrop-filter: blur(20px);
     border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 24px;
-    padding: 30px;
-    width: 95%;
+    padding: 2rem;
+    width: 90%;
     max-width: 900px;
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    box-shadow: 0 10px 40px rgba(0,0,0,0.6);
+    text-align: center;
 }
 
-#map-container {
-    background: rgba(0, 0, 0, 0.2);
-    border-radius: 16px;
-    padding: 10px;
+#map-holder {
     margin: 20px 0;
-    overflow: hidden;
+    min-height: 400px;
+    display: flex;
+    justify-content: center;
 }
 
+/* Estilização dos Paths do SVG Injetado */
 svg {
     width: 100%;
     height: auto;
-    max-height: 60vh;
+    max-height: 500px;
 }
 
-/* Estilo dos países no MapChart */
-svg path, svg circle {
-    fill: rgba(255, 255, 255, 0.1);
-    stroke: rgba(255, 255, 255, 0.2);
-    stroke-width: 0.5;
+path {
+    fill: rgba(255, 255, 255, 0.07) !important;
+    stroke: rgba(255, 255, 255, 0.2) !important;
     transition: all 0.3s ease;
     cursor: pointer;
 }
 
-svg path:hover {
-    fill: rgba(255, 255, 255, 0.25) !important;
-    filter: brightness(1.2);
+path:hover {
+    fill: rgba(255, 255, 255, 0.2) !important;
 }
 
 .glass-card {
-    background: rgba(255, 255, 255, 0.05);
+    background: rgba(0, 0, 0, 0.4);
     border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 12px;
-    padding: 12px;
-    font-size: 0.9rem;
-    min-height: 45px;
+    padding: 15px;
+    min-height: 50px;
 }
