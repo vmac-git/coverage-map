@@ -1,53 +1,58 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // Substitua pela sua URL de execução do Google Apps Script
     const API_URL = "https://script.google.com/macros/s/AKfycbyZpKLAAnTbNgA3qBmXUFTEP658_ssmvIrrB11SWQHSwZm-z9Qs_2AlBDcq_Dt6qTA1/exec";
-
     const tooltip = document.getElementById('tooltip');
 
-    async function loadCoverage() {
-        try {
-            const response = await fetch(API_URL, {
-                method: 'GET',
-                redirect: 'follow'
-            });
+    // Dicionário para traduzir nomes da planilha para os IDs do MapChart
+    const translate = {
+        "Brasil": "brazil",
+        "Estados Unidos": "united_states",
+        "EUA": "united_states",
+        "Argentina": "argentina",
+        "Chile": "chile",
+        "México": "mexico",
+        "Canada": "canada"
+    };
 
-            if (!response.ok) throw new Error('Falha ao acessar banco de dados');
-            
+    async function fetchData() {
+        try {
+            const response = await fetch(API_URL, { redirect: 'follow' });
             const data = await response.json();
-            console.log("Dados carregados:", data);
 
             data.forEach(item => {
-                // Tenta encontrar o país no SVG pelo ID (ex: Brazil)
-                const country = document.getElementById(item.Pais);
-                
+                // Tenta encontrar pelo ID do MapChart ou pelo atributo 'title'
+                const targetId = translate[item.Pais] || item.Pais.toLowerCase().replace(/ /g, "_");
+                const country = document.getElementById(targetId) || 
+                                document.querySelector(`path[title="${item.Pais}"]`);
+
                 if (country) {
-                    // Lógica de cores baseada no Status da sua planilha
+                    // Aplica cor baseada no status
                     if (item.Status === "Ativo") {
-                        country.style.fill = "rgba(0, 255, 136, 0.6)";
-                        country.style.stroke = "#00ff88";
+                        country.style.fill = "#00ff88"; // Verde neon
+                        country.style.fillOpacity = "0.7";
                     } else if (item.Status === "Em Teste") {
-                        country.style.fill = "rgba(255, 213, 0, 0.6)";
-                        country.style.stroke = "#ffd500";
+                        country.style.fill = "#ffd500"; // Amarelo
+                        country.style.fillOpacity = "0.7";
                     }
 
-                    // Interatividade
-                    country.addEventListener('mouseenter', () => {
-                        tooltip.innerHTML = `<strong>${item.Pais}</strong>: ${item.Info || item.Status}`;
-                        tooltip.style.color = "#00ff88";
-                    });
+                    // Eventos de Mouse
+                    country.onmouseenter = () => {
+                        tooltip.innerHTML = `<strong>${item.Pais}</strong>: ${item.Status}`;
+                        country.style.stroke = "#fff";
+                        country.style.strokeWidth = "1.5";
+                    };
 
-                    country.addEventListener('mouseleave', () => {
+                    country.onmouseleave = () => {
                         tooltip.innerText = "Passe o mouse sobre um país";
-                        tooltip.style.color = "white";
-                    });
+                        country.style.stroke = "rgba(255, 255, 255, 0.2)";
+                        country.style.strokeWidth = "0.5";
+                    };
                 }
             });
-
-        } catch (error) {
-            console.error("Erro:", error);
-            tooltip.innerText = "Erro ao carregar dados da planilha.";
+        } catch (e) {
+            console.error("Erro na carga:", e);
+            tooltip.innerText = "Erro ao conectar com a base de dados.";
         }
     }
 
-    loadCoverage();
+    fetchData();
 });
