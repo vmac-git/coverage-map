@@ -1,18 +1,31 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mapa de Cobertura - Américas</title>
     <link rel="stylesheet" href="style.css">
-    <script src="https://cdn.jsdelivr.net/npm/simple-svg-map@1.0.0/dist/map.js"></script>
 </head>
 <body>
     <div class="glass-container">
-        <h1>Mapa de Cobertura - Américas</h1>
+        <h1>Mapa de Cobertura</h1>
         <div id="map-container" class="glass-card">
-    <svg id="americas-map" viewBox="0 0 800 1000" xmlns="http://www.w3.org/2000/svg">
-        <path id="Brazil" title="Brasil" d="M250 300 L260 310..." />
-        <path id="Argentina" title="Argentina" d="M240 400 L250 410..." />
-    </svg>
-</div>
+            <svg id="americas-map" viewBox="0 0 400 600" xmlns="http://www.w3.org/2000/svg">
+                <path id="Canada" title="Canadá" d="M100,50 L300,50 L300,120 L100,120 Z" />
+                <path id="USA" title="USA" d="M110,130 L290,130 L290,200 L110,200 Z" />
+                <path id="Mexico" title="México" d="M140,210 L200,210 L180,260 L130,260 Z" />
+                
+                <path id="CentralAmerica" title="América Central" d="M160,270 L180,270 L175,310 L155,310 Z" />
+                
+                <path id="Colombia" title="Colômbia" d="M160,320 L190,325 L180,350 L150,340 Z" />
+                <path id="Brazil" title="Brasil" d="M195,330 Q280,350 280,450 T200,550 Q150,500 195,330 Z" />
+                <path id="Peru" title="Peru" d="M145,350 L175,360 L160,420 L130,410 Z" />
+                <path id="Chile" title="Chile" d="M155,430 L165,430 L150,580 L140,580 Z" />
+                <path id="Argentina" title="Argentina" d="M170,430 L195,440 L185,580 L160,580 Z" />
+            </svg>
+        </div>
+        <div id="tooltip" class="glass-card">Passe o mouse sobre um país</div>
+    </div>
     <script src="script.js"></script>
 </body>
 </html>
