@@ -1,58 +1,44 @@
-document.addEventListener('DOMContentLoaded', () => {
-    const API_URL = "https://script.google.com/macros/s/AKfycbyZpKLAAnTbNgA3qBmXUFTEP658_ssmvIrrB11SWQHSwZm-z9Qs_2AlBDcq_Dt6qTA1/exec";
+const SHEETS_API = "https://script.google.com/macros/s/AKfycbyZpKLAAnTbNgA3qBmXUFTEP658_ssmvIrrB11SWQHSwZm-z9Qs_2AlBDcq_Dt6qTA1/exec";
+const SVG_FILE = "MapChart_Map.svg"; // O nome do arquivo que você subiu no GitHub
+
+document.addEventListener('DOMContentLoaded', async () => {
+    const mapHolder = document.getElementById('map-holder');
     const tooltip = document.getElementById('tooltip');
 
-    // Dicionário para traduzir nomes da planilha para os IDs do MapChart
-    const translate = {
-        "Brasil": "brazil",
-        "Estados Unidos": "united_states",
-        "EUA": "united_states",
-        "Argentina": "argentina",
-        "Chile": "chile",
-        "México": "mexico",
-        "Canada": "canada"
-    };
+    try {
+        // 1. Carrega o arquivo SVG externo
+        const svgResponse = await fetch(SVG_FILE);
+        const svgText = await svgResponse.text();
+        mapHolder.innerHTML = svgText;
 
-    async function fetchData() {
-        try {
-            const response = await fetch(API_URL, { redirect: 'follow' });
-            const data = await response.json();
+        // 2. Carrega os dados da Planilha
+        const dataResponse = await fetch(SHEETS_API, { redirect: 'follow' });
+        const coverageData = await dataResponse.json();
 
-            data.forEach(item => {
-                // Tenta encontrar pelo ID do MapChart ou pelo atributo 'title'
-                const targetId = translate[item.Pais] || item.Pais.toLowerCase().replace(/ /g, "_");
-                const country = document.getElementById(targetId) || 
-                                document.querySelector(`path[title="${item.Pais}"]`);
+        // 3. Aplica a cobertura
+        coverageData.forEach(item => {
+            // Procura pelo atributo 'title' que o MapChart gera (ex: "Brazil")
+            const countryElement = document.querySelector(`path[title="${item.Pais}" i]`);
 
-                if (country) {
-                    // Aplica cor baseada no status
-                    if (item.Status === "Ativo") {
-                        country.style.fill = "#00ff88"; // Verde neon
-                        country.style.fillOpacity = "0.7";
-                    } else if (item.Status === "Em Teste") {
-                        country.style.fill = "#ffd500"; // Amarelo
-                        country.style.fillOpacity = "0.7";
-                    }
+            if (countryElement) {
+                const color = (item.Status === "Ativo") ? "#00ff88" : "#ffd500";
+                countryElement.style.setProperty('fill', color, 'important');
+                countryElement.style.fillOpacity = "0.6";
 
-                    // Eventos de Mouse
-                    country.onmouseenter = () => {
-                        tooltip.innerHTML = `<strong>${item.Pais}</strong>: ${item.Status}`;
-                        country.style.stroke = "#fff";
-                        country.style.strokeWidth = "1.5";
-                    };
+                countryElement.onmouseenter = () => {
+                    tooltip.innerHTML = `<strong>${item.Pais}</strong>: ${item.Status}`;
+                    countryElement.style.fillOpacity = "0.9";
+                };
 
-                    country.onmouseleave = () => {
-                        tooltip.innerText = "Passe o mouse sobre um país";
-                        country.style.stroke = "rgba(255, 255, 255, 0.2)";
-                        country.style.strokeWidth = "0.5";
-                    };
-                }
-            });
-        } catch (e) {
-            console.error("Erro na carga:", e);
-            tooltip.innerText = "Erro ao conectar com a base de dados.";
-        }
+                countryElement.onmouseleave = () => {
+                    tooltip.innerText = "Passe o mouse sobre um país";
+                    countryElement.style.fillOpacity = "0.6";
+                };
+            }
+        });
+
+    } catch (error) {
+        console.error("Erro no carregamento:", error);
+        mapHolder.innerHTML = "<p>Erro ao carregar mapa ou dados.</p>";
     }
-
-    fetchData();
 });
