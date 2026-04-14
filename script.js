@@ -1,44 +1,33 @@
-const SHEETS_API = "https://script.google.com/macros/s/AKfycbyZpKLAAnTbNgA3qBmXUFTEP658_ssmvIrrB11SWQHSwZm-z9Qs_2AlBDcq_Dt6qTA1/exec";
-const SVG_FILE = "MapChart_Map.svg"; // O nome do arquivo que você subiu no GitHub
-
 document.addEventListener('DOMContentLoaded', async () => {
-    const mapHolder = document.getElementById('map-holder');
+    const API_URL = "https://script.google.com/macros/s/AKfycbyZpKLAAnTbNgA3qBmXUFTEP658_ssmvIrrB11SWQHSwZm-z9Qs_2AlBDcq_Dt6qTA1/exec";
     const tooltip = document.getElementById('tooltip');
 
     try {
-        // 1. Carrega o arquivo SVG externo
-        const svgResponse = await fetch(SVG_FILE);
-        const svgText = await svgResponse.text();
-        mapHolder.innerHTML = svgText;
+        console.log("Iniciando busca de dados...");
+        const response = await fetch(API_URL, { redirect: 'follow' });
+        const data = await response.json();
+        console.log("Dados recebidos:", data);
 
-        // 2. Carrega os dados da Planilha
-        const dataResponse = await fetch(SHEETS_API, { redirect: 'follow' });
-        const coverageData = await dataResponse.json();
+        tooltip.innerText = "Passe o mouse sobre um país";
 
-        // 3. Aplica a cobertura
-        coverageData.forEach(item => {
-            // Procura pelo atributo 'title' que o MapChart gera (ex: "Brazil")
-            const countryElement = document.querySelector(`path[title="${item.Pais}" i]`);
+        data.forEach(item => {
+            // Tenta achar o país pelo 'title' (que o MapChart sempre cria)
+            const country = document.querySelector(`path[title="${item.Pais}" i]`);
 
-            if (countryElement) {
+            if (country) {
+                console.log(`Pintando: ${item.Pais}`);
                 const color = (item.Status === "Ativo") ? "#00ff88" : "#ffd500";
-                countryElement.style.setProperty('fill', color, 'important');
-                countryElement.style.fillOpacity = "0.6";
-
-                countryElement.onmouseenter = () => {
+                country.style.setProperty('fill', color, 'important');
+                
+                country.onmouseenter = () => {
                     tooltip.innerHTML = `<strong>${item.Pais}</strong>: ${item.Status}`;
-                    countryElement.style.fillOpacity = "0.9";
                 };
-
-                countryElement.onmouseleave = () => {
-                    tooltip.innerText = "Passe o mouse sobre um país";
-                    countryElement.style.fillOpacity = "0.6";
-                };
+            } else {
+                console.warn(`País da planilha não encontrado no SVG: ${item.Pais}`);
             }
         });
-
     } catch (error) {
-        console.error("Erro no carregamento:", error);
-        mapHolder.innerHTML = "<p>Erro ao carregar mapa ou dados.</p>";
+        console.error("Erro fatal:", error);
+        tooltip.innerText = "Erro ao carregar dados.";
     }
 });
