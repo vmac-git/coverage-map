@@ -2,32 +2,34 @@ document.addEventListener('DOMContentLoaded', async () => {
     const API_URL = "https://script.google.com/macros/s/AKfycbyZpKLAAnTbNgA3qBmXUFTEP658_ssmvIrrB11SWQHSwZm-z9Qs_2AlBDcq_Dt6qTA1/exec";
     const tooltip = document.getElementById('tooltip');
 
-    try {
-        console.log("Iniciando busca de dados...");
-        const response = await fetch(API_URL, { redirect: 'follow' });
-        const data = await response.json();
-        console.log("Dados recebidos:", data);
+    async function init() {
+        try {
+            const res = await fetch(API_URL, { redirect: 'follow' });
+            const data = await res.json();
+            
+            tooltip.innerText = "Passe o mouse sobre um país";
 
-        tooltip.innerText = "Passe o mouse sobre um país";
+            data.forEach(item => {
+                // Procuramos o path que tenha o atributo 'title' IGUAL ao nome na planilha
+                // Ex: Planilha "Brazil" -> Path title="Brazil"
+                const country = document.querySelector(`path[title="${item.Pais}" i]`);
 
-        data.forEach(item => {
-            // Tenta achar o país pelo 'title' (que o MapChart sempre cria)
-            const country = document.querySelector(`path[title="${item.Pais}" i]`);
+                if (country) {
+                    // Pinta conforme o status
+                    const color = (item.Status === "Ativo") ? "#00ff88" : "#ffd500";
+                    country.style.setProperty('fill', color, 'important');
+                    country.style.fillOpacity = "0.7";
 
-            if (country) {
-                console.log(`Pintando: ${item.Pais}`);
-                const color = (item.Status === "Ativo") ? "#00ff88" : "#ffd500";
-                country.style.setProperty('fill', color, 'important');
-                
-                country.onmouseenter = () => {
-                    tooltip.innerHTML = `<strong>${item.Pais}</strong>: ${item.Status}`;
-                };
-            } else {
-                console.warn(`País da planilha não encontrado no SVG: ${item.Pais}`);
-            }
-        });
-    } catch (error) {
-        console.error("Erro fatal:", error);
-        tooltip.innerText = "Erro ao carregar dados.";
+                    country.onmouseenter = () => {
+                        tooltip.innerHTML = `<strong>${item.Pais}</strong>: ${item.Status}`;
+                    };
+                }
+            });
+        } catch (err) {
+            console.error("Erro:", err);
+            tooltip.innerText = "Erro ao carregar dados da planilha.";
+        }
     }
+
+    init();
 });
