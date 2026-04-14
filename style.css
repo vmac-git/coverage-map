@@ -5,66 +5,61 @@
 }
 
 body {
-    background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+    background: radial-gradient(circle at top left, #1a2a6c, #203a43, #0f2027);
     height: 100vh;
     display: flex;
     justify-content: center;
     align-items: center;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-family: 'Segoe UI', system-ui, sans-serif;
     color: white;
+    overflow: hidden;
 }
 
 .glass-container {
-    background: rgba(255, 255, 255, 0.05);
+    background: rgba(255, 255, 255, 0.03);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
     border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 30px;
-    padding: 40px;
-    width: 90%;
-    max-width: 800px;
-    text-align: center;
-    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.8);
-}
-
-h1 {
-    margin-bottom: 20px;
-    font-weight: 300;
-    letter-spacing: 2px;
+    border-radius: 24px;
+    padding: 30px;
+    width: 95%;
+    max-width: 900px;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
 }
 
 #map-container {
     background: rgba(0, 0, 0, 0.2);
-    border-radius: 20px;
-    padding: 20px;
-    display: flex;
-    justify-content: center;
+    border-radius: 16px;
+    padding: 10px;
+    margin: 20px 0;
+    overflow: hidden;
 }
 
 svg {
-    max-height: 500px;
-    filter: drop-shadow(0 0 10px rgba(0,0,0,0.5));
+    width: 100%;
+    height: auto;
+    max-height: 60vh;
 }
 
-svg path {
+/* Estilo dos países no MapChart */
+svg path, svg circle {
     fill: rgba(255, 255, 255, 0.1);
-    stroke: rgba(255, 255, 255, 0.3);
-    stroke-width: 1;
-    transition: all 0.4s ease;
+    stroke: rgba(255, 255, 255, 0.2);
+    stroke-width: 0.5;
+    transition: all 0.3s ease;
     cursor: pointer;
 }
 
 svg path:hover {
-    fill: rgba(255, 255, 255, 0.3);
-    transform: translateY(-2px);
+    fill: rgba(255, 255, 255, 0.25) !important;
+    filter: brightness(1.2);
 }
 
 .glass-card {
-    margin-top: 20px;
-    background: rgba(255, 255, 255, 0.03);
-    backdrop-filter: blur(10px);
-    border-radius: 15px;
-    padding: 15px;
-    border: 1px solid rgba(255, 255, 255, 0.05);
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 12px;
     font-size: 0.9rem;
+    min-height: 45px;
 }
