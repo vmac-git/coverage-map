@@ -1,52 +1,45 @@
 body {
-    background: #0f172a; /* Fundo escuro para destacar o vidro */
+    background: #0f172a;
     height: 100vh;
-    margin: 0;
     display: flex;
     justify-content: center;
     align-items: center;
-    font-family: 'Segoe UI', sans-serif;
+    margin: 0;
+    font-family: sans-serif;
 }
 
 .glass-container {
     background: rgba(255, 255, 255, 0.05);
-    backdrop-filter: blur(15px);
+    backdrop-filter: blur(10px);
     border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 20px;
-    padding: 30px;
+    padding: 20px;
     width: 90%;
     max-width: 800px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    text-align: center;
 }
 
-/* IMPORTANTE: Remove o retângulo branco que vem no fundo do MapChart */
-svg rect, .background, #ocean {
+/* Remove o fundo branco do MapChart */
+svg rect[fill="white"], svg rect[fill="#ffffff"], .background {
     display: none !important;
 }
 
 svg {
     width: 100%;
     height: auto;
-    max-height: 500px;
 }
 
-/* Cor base dos países */
 path {
     fill: rgba(255, 255, 255, 0.1) !important;
     stroke: rgba(255, 255, 255, 0.2) !important;
-    stroke-width: 0.5;
     transition: 0.3s;
-    cursor: pointer;
-}
-
-path:hover {
-    fill: rgba(255, 255, 255, 0.3) !important;
 }
 
 .glass-card {
-    background: rgba(0, 0, 0, 0.3);
-    border-radius: 10px;
+    background: rgba(0, 0, 0, 0.4);
+    color: white;
     padding: 15px;
     margin-top: 20px;
-    color: #fff;
+    border-radius: 10px;
+    min-height: 50px;
 }
