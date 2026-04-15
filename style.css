@@ -1,4 +1,4 @@
-/* 1. RESET E BASE */
+/* RESET E FUNDO */
 body {
     background: radial-gradient(circle at top, #1b2735, #090a0f);
     min-height: 100vh;
@@ -10,10 +10,10 @@ body {
     color: white;
 }
 
-/* 2. CONTAINER PRINCIPAL */
 .glass-container {
     background: rgba(255, 255, 255, 0.03);
     backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
     border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 28px;
     padding: 2.5rem;
@@ -26,12 +26,11 @@ body {
 h1 {
     font-weight: 300;
     color: #00ff88;
-    text-transform: uppercase;
     letter-spacing: 3px;
-    font-size: 1.6rem;
+    margin-bottom: 25px;
 }
 
-/* 3. MAPA */
+/* ÁREA DO MAPA */
 #map-container {
     background: rgba(0, 0, 0, 0.2);
     border-radius: 20px;
@@ -49,74 +48,87 @@ svg {
     max-height: 550px;
 }
 
+/* ESTILO DOS PAÍSES */
 path {
     fill: #2d3748 !important;
     stroke: #1a202c !important;
-    stroke-width: 0.7;
-    transition: fill 0.3s, fill-opacity 0.3s;
+    stroke-width: 0.6;
+    transition: all 0.3s ease;
 }
 
 .pais-ativo {
     fill: #00ff88 !important;
-    fill-opacity: 0.4 !important;
+    fill-opacity: 0.3 !important;
     cursor: pointer !important;
 }
 
 .pais-ativo:hover {
-    fill-opacity: 0.8 !important;
-    stroke: #ffffff !important;
-    stroke-width: 1.5 !important;
+    fill-opacity: 0.5 !important;
+    stroke: #00ff88 !important;
+    stroke-width: 1.5;
 }
 
-/* 4. TOOLTIP (CORRIGIDO PARA NÃO TREMER) */
+/* ESTILO DO PAÍS CLICADO */
+.pais-selecionado {
+    fill-opacity: 0.8 !important;
+    stroke: #ffffff !important;
+    stroke-width: 2px !important;
+    filter: drop-shadow(0 0 10px rgba(0, 255, 136, 0.6));
+}
+
+/* TOOLTIP FIXO */
 #tooltip {
     background: rgba(10, 15, 20, 0.85);
     backdrop-filter: blur(12px);
     border: 1px solid rgba(0, 255, 136, 0.4);
     border-radius: 18px;
     padding: 20px;
-    min-height: 100px;
-    max-height: 400px;
+    min-height: 120px;
+    max-height: 450px;
     overflow-y: auto;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
     text-align: left;
-    
-    /* CRITICAL FIX: Impede que o mouse "bata" no tooltip e saia do país */
-    pointer-events: none; 
-    user-select: none;
+    pointer-events: auto; /* Permite rolar e clicar no conteúdo */
 }
 
-/* 5. ELEMENTOS INTERNOS */
+/* CONTEÚDO DO TOOLTIP */
+.tooltip-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+}
+
 .tooltip-title {
-    display: block;
     font-size: 1.3rem;
     font-weight: bold;
     color: #00ff88;
-    margin-bottom: 12px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    padding-bottom: 8px;
 }
 
 .partner-entry {
     background: rgba(255, 255, 255, 0.05);
     border-left: 4px solid #00ff88;
-    border-radius: 6px;
-    padding: 10px;
-    margin-bottom: 10px;
+    border-radius: 8px;
+    padding: 12px;
+    margin-bottom: 12px;
 }
 
 .partner-name {
     display: block;
     font-weight: bold;
     color: #fff;
-    margin-bottom: 2px;
+    font-size: 1rem;
 }
 
 .partner-details {
     font-size: 0.85rem;
     color: #ccc;
-    line-height: 1.4;
+    line-height: 1.5;
+    margin-top: 4px;
 }
 
-#tooltip::-webkit-scrollbar { width: 5px; }
+/* SCROLLBAR */
+#tooltip::-webkit-scrollbar { width: 6px; }
 #tooltip::-webkit-scrollbar-thumb { background: #00ff88; border-radius: 10px; }
