@@ -1,74 +1,100 @@
-body { font-family: 'Inter', sans-serif; scroll-behavior: smooth; }
+/* Custom Scrollbar */
+.custom-scrollbar::-webkit-scrollbar { width: 4px; }
+.custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+.custom-scrollbar::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
+.custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #cbd5e0; }
+
+body { font-family: 'Inter', sans-serif; }
 
 .bg-mesh {
     background-color: #f8fafc;
-    background-image: radial-gradient(at 0% 0%, hsla(225,39%,30%,0.03) 0, transparent 50%), 
-                      radial-gradient(at 50% 0%, hsla(225,39%,30%,0.03) 0, transparent 50%);
+    background-image: 
+        radial-gradient(at 0% 0%, hsla(225,39%,30%,0.02) 0, transparent 50%),
+        radial-gradient(at 100% 100%, hsla(225,39%,30%,0.02) 0, transparent 50%);
 }
 
 .glass-card {
-    background: rgba(255, 255, 255, 0.7);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    border: 1px solid rgba(226, 232, 240, 0.8);
+    background: rgba(255, 255, 255, 0.6);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.7);
 }
 
-/* Map Styling */
+/* SVG Map Engine */
+#map-container svg {
+    width: 100%;
+    height: 100%;
+    max-height: 85vh; /* Evita que o mapa fique maior que a tela */
+    filter: drop-shadow(0 20px 30px rgba(0,0,0,0.03));
+}
+
 path {
-    fill: #e2e8f0 !important; /* slate-200 */
+    fill: #f1f5f9 !important; /* slate-100 */
     stroke: #ffffff !important;
-    stroke-width: 0.5;
-    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    stroke-width: 0.8;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .pais-ativo {
     fill: #818cf8 !important; /* indigo-400 */
-    fill-opacity: 0.3 !important;
+    fill-opacity: 0.2 !important;
     cursor: pointer !important;
 }
 
 .pais-ativo:hover {
-    fill-opacity: 0.6 !important;
+    fill-opacity: 0.5 !important;
+    transform: translateY(-2px);
 }
 
 .pais-selecionado {
     fill: #4f46e5 !important; /* indigo-600 */
     fill-opacity: 1 !important;
-    filter: drop-shadow(0 10px 15px rgba(79, 70, 229, 0.3));
+    stroke: #ffffff !important;
+    stroke-width: 1.5 !important;
 }
 
-/* Loader */
+/* Loader Overlay */
+#loader-overlay {
+    position: fixed;
+    inset: 0;
+    background: #ffffff;
+    z-index: 999;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.6s ease;
+}
+
 .loader-spin {
-    border: 3px solid #f3f3f3;
-    border-top: 3px solid #4f46e5;
+    border: 2px solid #f1f5f9;
+    border-top: 2px solid #4f46e5;
     border-radius: 50%;
-    width: 32px;
-    height: 32px;
-    animation: spin 1s linear infinite;
+    width: 40px;
+    height: 40px;
+    animation: spin 0.8s linear infinite;
 }
 
 @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-#loader-overlay {
-    position: fixed;
-    top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(255, 255, 255, 0.9);
-    z-index: 10000;
-    flex-direction: column; align-items: center; justify-content: center;
-    backdrop-filter: blur(4px);
-    transition: opacity 0.5s ease;
+/* Cards de Parceiros */
+.partner-card {
+    background: white;
+    border: 1px solid #f1f5f9;
+    padding: 1rem;
+    border-radius: 1.5rem;
+    margin-bottom: 1rem;
+    transition: all 0.2s ease;
+    animation: slideUp 0.4s ease-out forwards;
 }
 
-/* Tooltip Custom Scrollbar */
-#tooltip::-webkit-scrollbar { width: 4px; }
-#tooltip::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
-
-/* Partner Entry Animation */
-.partner-entry {
-    animation: slideIn 0.4s ease-out forwards;
+.partner-card:hover {
+    border-color: #e2e8f0;
+    transform: translateX(4px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.02);
 }
 
-@keyframes slideIn {
+@keyframes slideUp {
     from { opacity: 0; transform: translateY(10px); }
     to { opacity: 1; transform: translateY(0); }
 }
