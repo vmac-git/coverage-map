@@ -3,92 +3,73 @@ const CONFIG = {
     SVG_URL: "MapChart_Map.svg"
 };
 
-// FUNÇÃO TRADUTORA: Ajusta o nome da planilha para o formato do SVG
-function normalizeCountryName(name) {
-    if (!name) return "";
-    let n = name.trim();
-
-    // Dicionário de exceções (Planilha : SVG)
-    const manualFixes = {
-        "United States": "United_States_of_America",
-        "Antigua & Barbuda": "Antigua_and_Barbuda",
-        "Curacao": "CuraÃ§ao", // Ajustado para o caractere estranho do seu SVG
-        "St. Kitts & Nevis": "St_Kitts_and_Nevis",
-        "St. Lucia": "St_Lucia",
-        "St. Vincent & Grenadines": "St_Vincent_and_the_Grenadines",
-        "Trinidad & Tobago": "Trinidad_and_Tobago",
-        "British Virgin Islands": "British_Virgin_Islands",
-        "Turks & Caicos Islands": "Turks_and_Caicos_Islands",
-        "French Guiana": "French_Guiana",
-        "Costa Rica": "Costa_Rica",
-        "El Salvador": "El_Salvador",
-        "Dominican Republic": "Dominican_Republic"
-    };
-
-    if (manualFixes[n]) return manualFixes[n];
-
-    // Regra geral: Troca espaços por underlines para os demais
-    return n.replace(/\s+/g, '_');
-}
-
 document.addEventListener('DOMContentLoaded', async () => {
     const mapContainer = document.getElementById('map-container');
     const tooltip = document.getElementById('tooltip');
 
     async function start() {
         try {
+            // 1. Carregar o SVG
             const svgRes = await fetch(CONFIG.SVG_URL);
             mapContainer.innerHTML = await svgRes.text();
 
+            // 2. Carregar os Dados da Planilha
             const dataRes = await fetch(CONFIG.SHEETS_API, { redirect: 'follow' });
             const rawData = await dataRes.json();
 
-            // Agrupa os dados
+            // 3. Agrupar dados usando o "Path" como chave
             const coverageMap = {};
             rawData.forEach(row => {
-                const sheetName = row.Country;
-                const svgName = normalizeCountryName(sheetName);
+                const pathId = row.Paths; // Pega o valor da coluna "Paths"
+                if (!pathId) return;
                 
-                if (!coverageMap[svgName]) coverageMap[svgName] = [];
-                coverageMap[svgName].push(row);
+                if (!coverageMap[pathId]) coverageMap[pathId] = [];
+                coverageMap[pathId].push(row);
             });
 
-            // Aplica interatividade
-            Object.keys(coverageMap).forEach(svgName => {
-                // Tenta encontrar o path pelo title exato do SVG
-                const countryPath = document.querySelector(`path[title="${svgName}"]`);
+            // 4. Aplicar interatividade usando o seletor de ID ou Title do Path
+            Object.keys(coverageMap).forEach(pathId => {
+                // Tenta encontrar por ID (ex: id="BR") ou por Title (ex: title="Brazil")
+                // Se sua coluna Paths tem o valor do atributo 'id' do SVG:
+                let countryElement = document.getElementById(pathId) || 
+                                     document.querySelector(`path[title="${pathId}" i]`) ||
+                                     document.querySelector(`path[id="${pathId}"]`);
 
-                if (countryPath) {
-                    countryPath.style.setProperty('fill', '#00ff88', 'important');
-                    countryPath.style.fillOpacity = "0.4";
+                if (countryElement) {
+                    // Estilo de cobertura ativa
+                    countryElement.style.setProperty('fill', '#00ff88', 'important');
+                    countryElement.style.fillOpacity = "0.4";
 
-                    countryPath.onmouseenter = () => {
-                        countryPath.style.fillOpacity = "0.8";
-                        const partners = coverageMap[svgName];
-                        // Exibe o nome original da planilha no título do tooltip
-                        let html = `<div style="font-weight:bold; color:#00ff88; border-bottom:1px solid #444; margin-bottom:8px;">${partners[0].Country}</div>`;
+                    countryElement.onmouseenter = () => {
+                        countryElement.style.fillOpacity = "0.8";
+                        countryElement.style.stroke = "#fff";
+                        
+                        const partners = coverageMap[pathId];
+                        // Pega o nome do país da primeira linha encontrada
+                        let html = `<div style="font-weight:bold; color:#00ff88; margin-bottom:8px; border-bottom:1px solid #444;">${partners[0].Country.toUpperCase()}</div>`;
                         
                         partners.forEach(p => {
                             html += `
-                                <div style="margin-bottom: 8px; font-size: 13px;">
-                                    <strong>${p['Partner Name']}</strong><br>
-                                    <small>${p.Tech} | VoLTE: ${p.VoLTE}</small>
+                                <div style="margin-bottom: 10px; text-align: left;">
+                                    <strong style="color: #fff;">🚩 ${p['Partner Name']}</strong><br>
+                                    <small style="color: #00ff88;">${p.Tech} | VoLTE: ${p.VoLTE}</small><br>
+                                    <small style="font-size: 10px; color: #aaa;">Frequencies: ${p.Frequencies}</small>
                                 </div>`;
                         });
                         tooltip.innerHTML = html;
                     };
 
-                    countryPath.onmouseleave = () => {
-                        countryPath.style.fillOpacity = "0.4";
-                        tooltip.innerHTML = "Passe o mouse sobre um país";
+                    countryElement.onmouseleave = () => {
+                        countryElement.style.fillOpacity = "0.4";
+                        countryElement.style.stroke = "rgba(255, 255, 255, 0.2)";
+                        tooltip.innerHTML = "Passe o mouse sobre um país ativo";
                     };
-                } else {
-                    console.warn(`Não linkado: ${svgName}`);
                 }
             });
 
         } catch (error) {
-            tooltip.innerHTML = "Erro ao carregar dados.";
+            console.error("Erro:", error);
+            tooltip.innerHTML = "Erro ao carregar mapa ou dados.";
         }
     }
     start();
