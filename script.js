@@ -1,5 +1,5 @@
 const CONFIG = {
-    SHEETS_API: "https://script.google.com/macros/s/AKfycbyZpKLAAnTbNgA3qBmXUFTEP658_ssmvIrrB11SWQHSwZm-z9Qs_2AlBDcq_Dt6qTA1/exec",
+    SHEETS_API: "https://script.google.com/macros/s/AKfycbyZpKLAAnTbNgA3qBmXUFTEP658_ssmvIrrB11SWQHSwZm-z9Qs_2AlBDcq_Dt6qTA1/exec", // COLOQUE SUA URL AQUI
     SVG_URL: "MapChart_Map.svg"
 };
 
@@ -9,68 +9,68 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     async function start() {
         try {
-            // 1. Carregar o SVG
+            // 1. Carregar SVG
+            console.log("Tentando carregar o SVG...");
             const svgRes = await fetch(CONFIG.SVG_URL);
+            if (!svgRes.ok) throw new Error("Arquivo SVG não encontrado no GitHub.");
             mapContainer.innerHTML = await svgRes.text();
+            console.log("SVG carregado com sucesso.");
 
-            // 2. Carregar os Dados da Planilha
+            // 2. Carregar Dados
+            console.log("Tentando buscar dados do Google Sheets...");
             const dataRes = await fetch(CONFIG.SHEETS_API, { redirect: 'follow' });
+            if (!dataRes.ok) throw new Error("Erro ao acessar a API do Google Sheets.");
             const rawData = await dataRes.json();
+            console.log("Dados recebidos:", rawData);
 
-            // 3. Agrupar dados usando o "Path" como chave
+            // 3. Agrupar Dados pela coluna "Paths"
             const coverageMap = {};
             rawData.forEach(row => {
-                const pathId = row.Paths; // Pega o valor da coluna "Paths"
-                if (!pathId) return;
-                
-                if (!coverageMap[pathId]) coverageMap[pathId] = [];
-                coverageMap[pathId].push(row);
+                const id = row.Paths; 
+                if (!id) return;
+                if (!coverageMap[id]) coverageMap[id] = [];
+                coverageMap[id].push(row);
             });
 
-            // 4. Aplicar interatividade usando o seletor de ID ou Title do Path
-            Object.keys(coverageMap).forEach(pathId => {
-                // Tenta encontrar por ID (ex: id="BR") ou por Title (ex: title="Brazil")
-                // Se sua coluna Paths tem o valor do atributo 'id' do SVG:
-                let countryElement = document.getElementById(pathId) || 
-                                     document.querySelector(`path[title="${pathId}" i]`) ||
-                                     document.querySelector(`path[id="${pathId}"]`);
+            tooltip.innerHTML = "Passe o mouse sobre os países destacados.";
 
-                if (countryElement) {
-                    // Estilo de cobertura ativa
-                    countryElement.style.setProperty('fill', '#00ff88', 'important');
-                    countryElement.style.fillOpacity = "0.4";
+            // 4. Aplicar nos Paths
+            Object.keys(coverageMap).forEach(id => {
+                // Tenta buscar por ID ou por TITLE (MapChart usa title como ID as vezes)
+                const el = document.getElementById(id) || document.querySelector(`path[title="${id}" i]`);
 
-                    countryElement.onmouseenter = () => {
-                        countryElement.style.fillOpacity = "0.8";
-                        countryElement.style.stroke = "#fff";
-                        
-                        const partners = coverageMap[pathId];
-                        // Pega o nome do país da primeira linha encontrada
-                        let html = `<div style="font-weight:bold; color:#00ff88; margin-bottom:8px; border-bottom:1px solid #444;">${partners[0].Country.toUpperCase()}</div>`;
+                if (el) {
+                    el.classList.add('pais-ativo'); // Aplica a cor do CSS
+
+                    el.onmouseenter = () => {
+                        el.style.fillOpacity = "1";
+                        const partners = coverageMap[id];
+                        let html = `<strong style="font-size:1.1rem; color:#00ff88;">${partners[0].Country}</strong><hr style="opacity:0.2">`;
                         
                         partners.forEach(p => {
                             html += `
-                                <div style="margin-bottom: 10px; text-align: left;">
-                                    <strong style="color: #fff;">🚩 ${p['Partner Name']}</strong><br>
-                                    <small style="color: #00ff88;">${p.Tech} | VoLTE: ${p.VoLTE}</small><br>
-                                    <small style="font-size: 10px; color: #aaa;">Frequencies: ${p.Frequencies}</small>
+                                <div style="margin-bottom:8px;">
+                                    <strong>${p['Partner Name']}</strong><br>
+                                    <small>${p.Tech} | VoLTE: ${p.VoLTE}</small>
                                 </div>`;
                         });
                         tooltip.innerHTML = html;
                     };
 
-                    countryElement.onmouseleave = () => {
-                        countryElement.style.fillOpacity = "0.4";
-                        countryElement.style.stroke = "rgba(255, 255, 255, 0.2)";
-                        tooltip.innerHTML = "Passe o mouse sobre um país ativo";
+                    el.onmouseleave = () => {
+                        el.style.fillOpacity = "0.6";
+                        tooltip.innerHTML = "Passe o mouse sobre os países destacados.";
                     };
+                } else {
+                    console.warn(`Atenção: O Path "${id}" da planilha não existe no SVG.`);
                 }
             });
 
         } catch (error) {
-            console.error("Erro:", error);
-            tooltip.innerHTML = "Erro ao carregar mapa ou dados.";
+            console.error("ERRO DETALHADO:", error);
+            tooltip.innerHTML = `❌ Erro: ${error.message}`;
         }
     }
+
     start();
 });
