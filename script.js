@@ -1,5 +1,5 @@
 const CONFIG = {
-    SHEETS_API: "https://script.google.com/macros/s/AKfycbyZpKLAAnTbNgA3qBmXUFTEP658_ssmvIrrB11SWQHSwZm-z9Qs_2AlBDcq_Dt6qTA1/exec", // COLOQUE SUA URL AQUI
+    SHEETS_API: "https://script.google.com/macros/s/AKfycbyZpKLAAnTbNgA3qBmXUFTEP658_ssmvIrrB11SWQHSwZm-z9Qs_2AlBDcq_Dt6qTA1/exec",
     SVG_URL: "MapChart_Map.svg"
 };
 
@@ -9,66 +9,69 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     async function start() {
         try {
-            // 1. Carregar SVG
-            console.log("Tentando carregar o SVG...");
+            // 1. Carregar SVG com timeout e log
+            tooltip.innerHTML = "Carregando componentes visuais...";
             const svgRes = await fetch(CONFIG.SVG_URL);
-            if (!svgRes.ok) throw new Error("Arquivo SVG não encontrado no GitHub.");
-            mapContainer.innerHTML = await svgRes.text();
-            console.log("SVG carregado com sucesso.");
+            if (!svgRes.ok) throw new Error("SVG não encontrado. Verifique se o nome do arquivo está correto no GitHub.");
+            
+            const svgText = await svgRes.text();
+            mapContainer.innerHTML = svgText;
+            console.log("SVG Injetado.");
 
-            // 2. Carregar Dados
-            console.log("Tentando buscar dados do Google Sheets...");
+            // 2. Carregar Dados da Planilha
+            tooltip.innerHTML = "Conectando à base de dados...";
             const dataRes = await fetch(CONFIG.SHEETS_API, { redirect: 'follow' });
-            if (!dataRes.ok) throw new Error("Erro ao acessar a API do Google Sheets.");
+            
+            if (!dataRes.ok) throw new Error("Erro na rede ao acessar o Google Sheets.");
             const rawData = await dataRes.json();
-            console.log("Dados recebidos:", rawData);
+            console.log("Dados carregados:", rawData.length, "linhas encontradas.");
 
-            // 3. Agrupar Dados pela coluna "Paths"
+            // 3. Processar Dados
             const coverageMap = {};
             rawData.forEach(row => {
-                const id = row.Paths; 
+                const id = String(row.Paths).trim();
                 if (!id) return;
                 if (!coverageMap[id]) coverageMap[id] = [];
                 coverageMap[id].push(row);
             });
 
-            tooltip.innerHTML = "Passe o mouse sobre os países destacados.";
-
-            // 4. Aplicar nos Paths
+            // 4. Aplicar Interatividade
+            let count = 0;
             Object.keys(coverageMap).forEach(id => {
-                // Tenta buscar por ID ou por TITLE (MapChart usa title como ID as vezes)
-                const el = document.getElementById(id) || document.querySelector(`path[title="${id}" i]`);
+                // Busca por ID, por Title ou por Data-Name (MapChart varia)
+                const el = document.getElementById(id) || 
+                           document.querySelector(`path[title="${id}" i]`) ||
+                           document.querySelector(`path[id="${id}" i]`);
 
                 if (el) {
-                    el.classList.add('pais-ativo'); // Aplica a cor do CSS
+                    count++;
+                    el.classList.add('pais-ativo');
 
                     el.onmouseenter = () => {
-                        el.style.fillOpacity = "1";
                         const partners = coverageMap[id];
-                        let html = `<strong style="font-size:1.1rem; color:#00ff88;">${partners[0].Country}</strong><hr style="opacity:0.2">`;
+                        let html = `<span class="tooltip-title">${partners[0].Country}</span>`;
                         
                         partners.forEach(p => {
                             html += `
-                                <div style="margin-bottom:8px;">
-                                    <strong>${p['Partner Name']}</strong><br>
-                                    <small>${p.Tech} | VoLTE: ${p.VoLTE}</small>
+                                <div class="partner-entry">
+                                    <span class="partner-name">🚩 ${p['Partner Name']}</span>
+                                    <span class="partner-details">${p.Tech} | VoLTE: ${p.VoLTE}</span>
                                 </div>`;
                         });
                         tooltip.innerHTML = html;
                     };
 
                     el.onmouseleave = () => {
-                        el.style.fillOpacity = "0.6";
-                        tooltip.innerHTML = "Passe o mouse sobre os países destacados.";
+                        tooltip.innerHTML = "Passe o mouse sobre um país destacado.";
                     };
-                } else {
-                    console.warn(`Atenção: O Path "${id}" da planilha não existe no SVG.`);
                 }
             });
 
+            tooltip.innerHTML = count > 0 ? "Passe o mouse sobre os países destacados." : "Aviso: Nenhum país da planilha foi encontrado no mapa.";
+
         } catch (error) {
-            console.error("ERRO DETALHADO:", error);
-            tooltip.innerHTML = `❌ Erro: ${error.message}`;
+            console.error("ERRO:", error);
+            tooltip.innerHTML = `<span style="color: #ff4444;">❌ Erro: ${error.message}</span><br><small>Verifique o console (F12)</small>`;
         }
     }
 
