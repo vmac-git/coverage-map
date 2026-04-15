@@ -47,17 +47,31 @@ h1 {
 }
 
 /* Estilo do SVG injetado */
+/* Ajuste para o mapa aparecer */
+#map-container {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 15px;
+    padding: 10px;
+    margin: 20px 0;
+}
+
 svg {
     width: 100%;
     height: auto;
-    max-height: 600px;
-    filter: drop-shadow(0 5px 15px rgba(0,0,0,0.3));
+    display: block;
 }
 
-/* Limpeza de fundos padrão do MapChart */
-svg rect, .background, #ocean, .mc-background {
-    fill: transparent !important;
-    display: none !important;
+/* Garante que os países apareçam mesmo sem dados */
+path {
+    fill: rgba(255, 255, 255, 0.15) !important; /* Cinza claro visível */
+    stroke: rgba(255, 255, 255, 0.3) !important;
+    stroke-width: 0.5;
+}
+
+/* Cor quando o país TEM dados (será aplicada via JS) */
+.pais-ativo {
+    fill: #00ff88 !important;
+    fill-opacity: 0.6 !important;
 }
 
 /* Estilo Base dos Países */
