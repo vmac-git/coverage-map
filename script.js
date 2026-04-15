@@ -3,58 +3,78 @@ const CONFIG = {
     SVG_URL: "MapChart_Map.svg"
 };
 
+// FUNÇÃO TRADUTORA: Ajusta o nome da planilha para o formato do SVG
+function normalizeCountryName(name) {
+    if (!name) return "";
+    let n = name.trim();
+
+    // Dicionário de exceções (Planilha : SVG)
+    const manualFixes = {
+        "United States": "United_States_of_America",
+        "Antigua & Barbuda": "Antigua_and_Barbuda",
+        "Curacao": "CuraÃ§ao", // Ajustado para o caractere estranho do seu SVG
+        "St. Kitts & Nevis": "St_Kitts_and_Nevis",
+        "St. Lucia": "St_Lucia",
+        "St. Vincent & Grenadines": "St_Vincent_and_the_Grenadines",
+        "Trinidad & Tobago": "Trinidad_and_Tobago",
+        "British Virgin Islands": "British_Virgin_Islands",
+        "Turks & Caicos Islands": "Turks_and_Caicos_Islands",
+        "French Guiana": "French_Guiana",
+        "Costa Rica": "Costa_Rica",
+        "El Salvador": "El_Salvador",
+        "Dominican Republic": "Dominican_Republic"
+    };
+
+    if (manualFixes[n]) return manualFixes[n];
+
+    // Regra geral: Troca espaços por underlines para os demais
+    return n.replace(/\s+/g, '_');
+}
+
 document.addEventListener('DOMContentLoaded', async () => {
     const mapContainer = document.getElementById('map-container');
     const tooltip = document.getElementById('tooltip');
 
     async function start() {
         try {
-            // 1. Carrega o SVG do MapChart
             const svgRes = await fetch(CONFIG.SVG_URL);
-            if (!svgRes.ok) throw new Error("Erro ao carregar SVG");
             mapContainer.innerHTML = await svgRes.text();
 
-            // 2. Carrega os dados do Google Sheets
-            tooltip.innerHTML = "Sincronizando base de dados...";
             const dataRes = await fetch(CONFIG.SHEETS_API, { redirect: 'follow' });
             const rawData = await dataRes.json();
 
-            // 3. AGRUPAMENTO: Transforma a lista em um dicionário de países
-            const coverageMap = rawData.reduce((acc, row) => {
-                const country = row.Country;
-                if (!acc[country]) acc[country] = [];
-                acc[country].push(row);
-                return acc;
-            }, {});
+            // Agrupa os dados
+            const coverageMap = {};
+            rawData.forEach(row => {
+                const sheetName = row.Country;
+                const svgName = normalizeCountryName(sheetName);
+                
+                if (!coverageMap[svgName]) coverageMap[svgName] = [];
+                coverageMap[svgName].push(row);
+            });
 
-            tooltip.innerHTML = "Passe o mouse sobre um país para ver os parceiros";
-
-            // 4. APLICAÇÃO NO MAPA
-            Object.keys(coverageMap).forEach(countryName => {
-                const partners = coverageMap[countryName];
-                // Busca o elemento no SVG pelo atributo 'title'
-                const countryPath = document.querySelector(`path[title="${countryName}" i]`);
+            // Aplica interatividade
+            Object.keys(coverageMap).forEach(svgName => {
+                // Tenta encontrar o path pelo title exato do SVG
+                const countryPath = document.querySelector(`path[title="${svgName}"]`);
 
                 if (countryPath) {
-                    // Pinta o país que tem cobertura
                     countryPath.style.setProperty('fill', '#00ff88', 'important');
                     countryPath.style.fillOpacity = "0.4";
 
                     countryPath.onmouseenter = () => {
                         countryPath.style.fillOpacity = "0.8";
-                        
-                        // CONSTRUÇÃO DO CONTEÚDO DO TOOLTIP
-                        let html = `<div class="tooltip-header">${countryName}</div>`;
+                        const partners = coverageMap[svgName];
+                        // Exibe o nome original da planilha no título do tooltip
+                        let html = `<div style="font-weight:bold; color:#00ff88; border-bottom:1px solid #444; margin-bottom:8px;">${partners[0].Country}</div>`;
                         
                         partners.forEach(p => {
                             html += `
-                                <div class="partner-row">
-                                    <span class="partner-name">${p['Partner Name']}</span>
-                                    <span class="partner-info">${p.Tech} | VoLTE: ${p.VoLTE}</span>
-                                </div>
-                            `;
+                                <div style="margin-bottom: 8px; font-size: 13px;">
+                                    <strong>${p['Partner Name']}</strong><br>
+                                    <small>${p.Tech} | VoLTE: ${p.VoLTE}</small>
+                                </div>`;
                         });
-
                         tooltip.innerHTML = html;
                     };
 
@@ -62,14 +82,14 @@ document.addEventListener('DOMContentLoaded', async () => {
                         countryPath.style.fillOpacity = "0.4";
                         tooltip.innerHTML = "Passe o mouse sobre um país";
                     };
+                } else {
+                    console.warn(`Não linkado: ${svgName}`);
                 }
             });
 
         } catch (error) {
-            console.error("Erro técnico:", error);
-            tooltip.innerHTML = "Erro ao conectar com a planilha ou carregar mapa.";
+            tooltip.innerHTML = "Erro ao carregar dados.";
         }
     }
-
     start();
 });
