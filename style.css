@@ -1,64 +1,47 @@
-body {
-    background: radial-gradient(circle at top, #1b2735, #090a0f);
-    height: 100vh;
-    margin: 0;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-family: 'Segoe UI', sans-serif;
-    color: white;
-}
-
-.glass-container {
-    background: rgba(255, 255, 255, 0.03);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 24px;
-    padding: 2rem;
-    width: 90%;
-    max-width: 950px;
-    box-shadow: 0 10px 40px rgba(0,0,0,0.6);
-    text-align: center;
-}
-
-#map-container {
-    margin: 20px 0;
-    min-height: 450px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
-/* Estilo para o SVG que será injetado */
-svg {
-    width: 100%;
-    height: auto;
-    max-height: 550px;
-}
-
-/* Remove fundos brancos automáticos do MapChart */
-svg rect, .background, #ocean {
-    display: none !important;
-}
-
-path {
-    fill: rgba(255, 255, 255, 0.08) !important;
-    stroke: rgba(255, 255, 255, 0.2) !important;
-    stroke-width: 0.5;
-    transition: all 0.3s ease;
-    cursor: pointer;
-}
-
-path:hover {
-    fill: rgba(255, 255, 255, 0.2) !important;
-}
-
+/* Ajuste no Tooltip para suportar listas */
 .glass-card {
-    background: rgba(0, 0, 0, 0.4);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(0, 0, 0, 0.7);
+    border: 1px solid rgba(0, 255, 136, 0.3);
     border-radius: 12px;
     padding: 15px;
     min-height: 60px;
+    max-height: 300px; /* Limita altura se houver muitos parceiros */
+    overflow-y: auto;  /* Adiciona scroll se a lista for gigante */
+    text-align: left;  /* Alinha texto à esquerda para a lista */
+}
+
+.tooltip-header {
+    font-weight: bold;
+    font-size: 1.2rem;
+    color: #fff;
+    margin-bottom: 10px;
+    border-bottom: 1px solid rgba(255,255,255,0.2);
+    padding-bottom: 5px;
+}
+
+.partner-row {
+    margin-bottom: 8px;
+    padding: 5px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 4px;
+}
+
+.partner-name {
+    display: block;
     color: #00ff88;
+    font-weight: 600;
+}
+
+.partner-info {
+    font-size: 0.85rem;
+    color: #ccc;
+}
+
+/* Scrollbar customizada para o tooltip */
+.glass-card::-webkit-scrollbar {
+    width: 5px;
+}
+.glass-card::-webkit-scrollbar-thumb {
+    background: #00ff88;
+    border-radius: 10px;
 }
