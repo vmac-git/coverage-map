@@ -1,37 +1,182 @@
-/* Substitua suas regras de #map-container e path por estas */
-#map-container {
-    background: rgba(255, 255, 255, 0.05);
-    border-radius: 15px;
-    padding: 20px;
-    margin: 20px 0;
-    min-height: 450px;
+/* 1. RESET E BASE */
+* {
+    box-sizing: border-box;
+    -webkit-font-smoothing: antialiased;
+}
+
+body {
+    background: radial-gradient(circle at top, #1b2735, #090a0f);
+    min-height: 100vh;
+    margin: 0;
     display: flex;
     justify-content: center;
     align-items: center;
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    color: white;
+    overflow-x: hidden;
+}
+
+/* 2. CONTAINER PRINCIPAL (GLASS EFFECT) */
+.glass-container {
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 28px;
+    padding: 2.5rem;
+    width: 95%;
+    max-width: 1100px;
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.6);
+    text-align: center;
+    margin: 20px;
+}
+
+h1 {
+    font-weight: 300;
+    letter-spacing: 3px;
+    margin-top: 0;
+    margin-bottom: 25px;
+    color: #00ff88;
+    text-shadow: 0 0 15px rgba(0, 255, 136, 0.3);
+    font-size: 1.6rem;
+}
+
+/* 3. AREA DO MAPA */
+#map-container {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 20px;
+    padding: 15px;
+    margin-bottom: 20px;
+    min-height: 400px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 svg {
-    width: 100% !important;
-    height: auto !important;
-    display: block !important;
-    visibility: visible !important;
+    width: 100%;
+    height: auto;
+    max-height: 550px;
+    display: block;
 }
 
-/* Forçar os países a aparecerem no fundo escuro */
+/* 4. ESTILIZAÇÃO DOS PAÍSES (PATHS) */
 path {
-    fill: #2a3441 !important; /* Cinza azulado visível */
-    stroke: #4a5568 !important; /* Bordas visíveis */
-    stroke-width: 0.8;
+    fill: #2d3748 !important; /* Cor dos países sem dados */
+    stroke: #1a202c !important; /* Linha de divisa */
+    stroke-width: 0.7;
     transition: all 0.3s ease;
+    cursor: default;
+    pointer-events: all;
 }
 
+/* Países que estão na planilha */
 .pais-ativo {
     fill: #00ff88 !important;
-    fill-opacity: 0.5 !important;
+    fill-opacity: 0.4 !important;
+    cursor: pointer !important;
 }
 
-path:hover {
-    fill-opacity: 0.9 !important;
+/* Efeito de Hover nos países com dados */
+.pais-ativo:hover {
+    fill-opacity: 0.8 !important;
     stroke: #ffffff !important;
-    stroke-width: 1.5;
+    stroke-width: 1.5 !important;
+    filter: drop-shadow(0 0 8px rgba(0, 255, 136, 0.5));
+}
+
+/* 5. TOOLTIP / CARD DE INFO */
+#tooltip {
+    background: rgba(10, 15, 20, 0.8);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(0, 255, 136, 0.3);
+    border-radius: 18px;
+    padding: 20px;
+    min-height: 80px;
+    max-height: 380px; /* Evita que o card cresça demais */
+    overflow-y: auto;  /* Scroll interno se houver muitos parceiros */
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+    text-align: left;
+}
+
+/* 6. ELEMENTOS INTERNOS DO TOOLTIP (VIA JS) */
+.tooltip-title {
+    display: block;
+    font-size: 1.3rem;
+    font-weight: bold;
+    color: #00ff88;
+    margin-bottom: 15px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding-bottom: 10px;
+    letter-spacing: 1px;
+}
+
+.partner-entry {
+    background: rgba(255, 255, 255, 0.04);
+    border-left: 4px solid #00ff88;
+    border-radius: 6px;
+    padding: 12px;
+    margin-bottom: 12px;
+    transition: transform 0.2s ease;
+}
+
+.partner-entry:hover {
+    background: rgba(255, 255, 255, 0.07);
+    transform: translateX(5px);
+}
+
+.partner-name {
+    display: block;
+    font-weight: bold;
+    color: #ffffff;
+    font-size: 1rem;
+    margin-bottom: 4px;
+}
+
+.partner-details {
+    font-size: 0.85rem;
+    color: #cbd5e0;
+    line-height: 1.5;
+}
+
+.partner-details b {
+    color: #00ff88;
+}
+
+/* 7. CUSTOM SCROLLBAR (Para o Tooltip) */
+#tooltip::-webkit-scrollbar {
+    width: 6px;
+}
+
+#tooltip::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+#tooltip::-webkit-scrollbar-thumb {
+    background: rgba(0, 255, 136, 0.4);
+    border-radius: 10px;
+}
+
+#tooltip::-webkit-scrollbar-thumb:hover {
+    background: #00ff88;
+}
+
+/* 8. RESPONSIVIDADE */
+@media (max-width: 768px) {
+    .glass-container {
+        padding: 1.5rem;
+        border-radius: 0;
+        margin: 0;
+        width: 100%;
+        min-height: 100vh;
+    }
+
+    h1 {
+        font-size: 1.2rem;
+    }
+
+    #tooltip {
+        max-height: 300px;
+    }
 }
