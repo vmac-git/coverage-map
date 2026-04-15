@@ -1,16 +1,21 @@
 const CONFIG = {
     SHEETS_API: "https://script.google.com/macros/s/AKfycbyZpKLAAnTbNgA3qBmXUFTEP658_ssmvIrrB11SWQHSwZm-z9Qs_2AlBDcq_Dt6qTA1/exec",
     SVG_URL: "MapChart_Map.svg",
-    USA_TXT_URL: "united_states.txt" // O arquivo que você criou
+    USA_TXT_URL: "united_states.txt"
 };
 
 document.addEventListener('DOMContentLoaded', async () => {
     const mapContainer = document.getElementById('map-container');
     const tooltip = document.getElementById('tooltip');
+    const overlay = document.getElementById('loader-overlay');
+
+    function toggleLoader(show) {
+        overlay.style.opacity = show ? "1" : "0";
+        setTimeout(() => { if(!show) overlay.style.display = "none"; }, 500);
+    }
 
     async function start() {
         try {
-            // 1. CARREGAR SVG E CONTEÚDO DO TXT DOS EUA (EM PARALELO)
             const [svgRes, usaTxtRes, dataRes] = await Promise.all([
                 fetch(CONFIG.SVG_URL),
                 fetch(CONFIG.USA_TXT_URL).then(r => r.text()).catch(() => ""),
@@ -20,17 +25,14 @@ document.addEventListener('DOMContentLoaded', async () => {
             mapContainer.innerHTML = await svgRes.text();
             const usaGeomCode = usaTxtRes.trim();
 
-            // 2. ORGANIZAR DADOS DA PLANILHA
             const coverageMap = {};
             dataRes.forEach(row => {
                 let rawPath = String(row['Paths 2'] || "").trim();
                 let cleanId = "";
-
-                // Verifica se é United States pelo nome ou se o Paths 2 está vazio/curto
                 const isUSA = String(row['Country']).toLowerCase().includes("united states");
 
                 if (isUSA) {
-                    cleanId = "united_states"; 
+                    cleanId = "united_states";
                 } else {
                     let countryPart = rawPath.split(/ M/)[0].trim();
                     cleanId = countryPart.replace(/\s+/g, '_').toLowerCase();
@@ -41,74 +43,61 @@ document.addEventListener('DOMContentLoaded', async () => {
                 coverageMap[cleanId].push(row);
             });
 
-            // 3. INTERATIVIDADE
             const allPaths = Array.from(document.querySelectorAll('path'));
 
             Object.keys(coverageMap).forEach(idPlanilha => {
-                let el;
-
-                if (idPlanilha === "united_states") {
-                    // BUSCA ESPECIAL PARA EUA: Tenta pelo ID ou pelo conteúdo do TXT
-                    el = allPaths.find(p => 
-                        p.id.toLowerCase() === "united_states" || 
-                        p.getAttribute('title')?.toLowerCase() === "united states" ||
-                        (usaGeomCode && p.getAttribute('d')?.startsWith(usaGeomCode.substring(0, 50)))
-                    );
-                } else {
-                    // Busca padrão para os outros países
-                    el = allPaths.find(p => {
-                        const title = (p.getAttribute('title') || "").toLowerCase();
-                        const idAttr = (p.id || "").toLowerCase();
-                        return title === idPlanilha || idAttr === idPlanilha;
-                    });
-                }
+                let el = allPaths.find(p => {
+                    const title = (p.getAttribute('title') || "").toLowerCase();
+                    const idAttr = (p.id || "").toLowerCase();
+                    if (idPlanilha === "united_states") {
+                        return idAttr === "united_states" || title === "united states" || (usaGeomCode && p.getAttribute('d')?.startsWith(usaGeomCode.substring(0, 50)));
+                    }
+                    return title === idPlanilha || idAttr === idPlanilha;
+                });
 
                 if (el) {
                     el.classList.add('pais-ativo');
 
                     el.onclick = () => {
-                        const anterior = document.querySelector('.pais-selecionado');
-                        if (anterior) anterior.classList.remove('pais-selecionado');
+                        document.querySelectorAll('.pais-selecionado').forEach(p => p.classList.remove('pais-selecionado'));
                         el.classList.add('pais-selecionado');
 
                         const partners = coverageMap[idPlanilha];
                         const countryDisplay = partners[0].Country || idPlanilha.replace(/_/g, ' ');
 
                         let html = `
-                            <div class="tooltip-header">
-                                <span class="tooltip-title">${countryDisplay.toUpperCase()}</span>
-                                <button id="btn-close" style="background:none; border:none; color:#ff4444; cursor:pointer; font-size:1.5rem;">&times;</button>
-                            </div>`;
+                            <div class="mb-6">
+                                <h3 class="text-xl font-black text-slate-900 tracking-tighter uppercase italic">${countryDisplay}</h3>
+                                <p class="text-[9px] font-bold text-indigo-600 uppercase tracking-widest">${partners.length} Active Partners</p>
+                            </div>
+                            <div class="space-y-4 overflow-y-auto max-h-[400px] pr-2" id="partner-list">
+                        `;
 
                         partners.forEach(p => {
                             html += `
-                                <div class="partner-entry">
-                                    <span class="partner-name">🚩 ${p['Partner Name']}</span>
-                                    <div class="partner-details">
-                                        <b>Rede:</b> ${p['Mobile Network']}<br>
-                                        <b>Tech:</b> ${p.Tech} | <b>VoLTE:</b> ${p.VoLTE}<br>
-                                        <small style="color:#00ff88;">Freq: ${p.Frequencies}</small>
+                                <div class="partner-entry bg-white/50 border border-slate-100 p-4 rounded-2xl shadow-sm">
+                                    <div class="flex justify-between items-start mb-2">
+                                        <span class="text-[10px] font-black text-slate-800 uppercase tracking-tight">${p['Partner Name']}</span>
+                                        <span class="text-[8px] bg-indigo-50 text-indigo-600 px-2 py-0.5 rounded-md font-bold uppercase">${p.Tech || 'LTE'}</span>
+                                    </div>
+                                    <div class="grid grid-cols-2 gap-2 text-[9px]">
+                                        <div class="text-slate-400 font-medium uppercase">Network: <span class="text-slate-600 block font-bold">${p['Mobile Network'] || 'N/A'}</span></div>
+                                        <div class="text-slate-400 font-medium uppercase">VoLTE: <span class="text-slate-600 block font-bold">${p.VoLTE || 'No'}</span></div>
                                     </div>
                                 </div>`;
                         });
 
+                        html += `</div>`;
                         tooltip.innerHTML = html;
-                        tooltip.scrollTop = 0;
-
-                        document.getElementById('btn-close').onclick = (e) => {
-                            e.stopPropagation();
-                            el.classList.remove('pais-selecionado');
-                            tooltip.innerHTML = "📍 Selecione um país no mapa para ver os detalhes.";
-                        };
                     };
                 }
             });
 
-            tooltip.innerHTML = "📍 Mapa carregado com suporte especial para EUA.";
+            toggleLoader(false);
 
         } catch (error) {
             console.error(error);
-            tooltip.innerHTML = "❌ Erro ao carregar mapa ou dados.";
+            tooltip.innerHTML = `<p class="text-red-500 font-bold text-xs">Sync Error. Please check database connection.</p>`;
         }
     }
     start();
