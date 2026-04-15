@@ -1,134 +1,74 @@
-/* RESET E FUNDO */
-body {
-    background: radial-gradient(circle at top, #1b2735, #090a0f);
-    min-height: 100vh;
-    margin: 0;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-family: 'Segoe UI', system-ui, sans-serif;
-    color: white;
+body { font-family: 'Inter', sans-serif; scroll-behavior: smooth; }
+
+.bg-mesh {
+    background-color: #f8fafc;
+    background-image: radial-gradient(at 0% 0%, hsla(225,39%,30%,0.03) 0, transparent 50%), 
+                      radial-gradient(at 50% 0%, hsla(225,39%,30%,0.03) 0, transparent 50%);
 }
 
-.glass-container {
-    background: rgba(255, 255, 255, 0.03);
-    backdrop-filter: blur(15px);
-    -webkit-backdrop-filter: blur(15px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 28px;
-    padding: 2.5rem;
-    width: 95%;
-    max-width: 1100px;
-    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.6);
-    text-align: center;
+.glass-card {
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(226, 232, 240, 0.8);
 }
 
-h1 {
-    font-weight: 300;
-    color: #00ff88;
-    letter-spacing: 3px;
-    margin-bottom: 25px;
-}
-
-/* ÁREA DO MAPA */
-#map-container {
-    background: rgba(0, 0, 0, 0.2);
-    border-radius: 20px;
-    padding: 15px;
-    margin-bottom: 20px;
-    min-height: 400px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
-svg {
-    width: 100%;
-    height: auto;
-    max-height: 550px;
-}
-
-/* ESTILO DOS PAÍSES */
+/* Map Styling */
 path {
-    fill: #2d3748 !important;
-    stroke: #1a202c !important;
-    stroke-width: 0.6;
-    transition: all 0.3s ease;
+    fill: #e2e8f0 !important; /* slate-200 */
+    stroke: #ffffff !important;
+    stroke-width: 0.5;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .pais-ativo {
-    fill: #00ff88 !important;
+    fill: #818cf8 !important; /* indigo-400 */
     fill-opacity: 0.3 !important;
     cursor: pointer !important;
 }
 
 .pais-ativo:hover {
-    fill-opacity: 0.5 !important;
-    stroke: #00ff88 !important;
-    stroke-width: 1.5;
+    fill-opacity: 0.6 !important;
 }
 
-/* ESTILO DO PAÍS CLICADO */
 .pais-selecionado {
-    fill-opacity: 0.8 !important;
-    stroke: #ffffff !important;
-    stroke-width: 2px !important;
-    filter: drop-shadow(0 0 10px rgba(0, 255, 136, 0.6));
+    fill: #4f46e5 !important; /* indigo-600 */
+    fill-opacity: 1 !important;
+    filter: drop-shadow(0 10px 15px rgba(79, 70, 229, 0.3));
 }
 
-/* TOOLTIP FIXO */
-#tooltip {
-    background: rgba(10, 15, 20, 0.85);
-    backdrop-filter: blur(12px);
-    border: 1px solid rgba(0, 255, 136, 0.4);
-    border-radius: 18px;
-    padding: 20px;
-    min-height: 120px;
-    max-height: 450px;
-    overflow-y: auto;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-    text-align: left;
-    pointer-events: auto; /* Permite rolar e clicar no conteúdo */
+/* Loader */
+.loader-spin {
+    border: 3px solid #f3f3f3;
+    border-top: 3px solid #4f46e5;
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    animation: spin 1s linear infinite;
 }
 
-/* CONTEÚDO DO TOOLTIP */
-.tooltip-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    margin-bottom: 15px;
-    padding-bottom: 10px;
+@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+#loader-overlay {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(255, 255, 255, 0.9);
+    z-index: 10000;
+    flex-direction: column; align-items: center; justify-content: center;
+    backdrop-filter: blur(4px);
+    transition: opacity 0.5s ease;
 }
 
-.tooltip-title {
-    font-size: 1.3rem;
-    font-weight: bold;
-    color: #00ff88;
-}
+/* Tooltip Custom Scrollbar */
+#tooltip::-webkit-scrollbar { width: 4px; }
+#tooltip::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
 
+/* Partner Entry Animation */
 .partner-entry {
-    background: rgba(255, 255, 255, 0.05);
-    border-left: 4px solid #00ff88;
-    border-radius: 8px;
-    padding: 12px;
-    margin-bottom: 12px;
+    animation: slideIn 0.4s ease-out forwards;
 }
 
-.partner-name {
-    display: block;
-    font-weight: bold;
-    color: #fff;
-    font-size: 1rem;
+@keyframes slideIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
 }
-
-.partner-details {
-    font-size: 0.85rem;
-    color: #ccc;
-    line-height: 1.5;
-    margin-top: 4px;
-}
-
-/* SCROLLBAR */
-#tooltip::-webkit-scrollbar { width: 6px; }
-#tooltip::-webkit-scrollbar-thumb { background: #00ff88; border-radius: 10px; }
