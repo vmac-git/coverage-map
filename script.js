@@ -1,6 +1,7 @@
 const CONFIG = {
     SHEETS_API: "https://script.google.com/macros/s/AKfycbyZpKLAAnTbNgA3qBmXUFTEP658_ssmvIrrB11SWQHSwZm-z9Qs_2AlBDcq_Dt6qTA1/exec",
-    SVG_URL: "MapChart_Map.svg"
+    SVG_URL: "MapChart_Map.svg",
+    USA_TXT_URL: "united_states.txt" // O arquivo que você criou
 };
 
 document.addEventListener('DOMContentLoaded', async () => {
@@ -9,49 +10,67 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     async function start() {
         try {
-            // 1. CARREGAR SVG
-            const svgRes = await fetch(CONFIG.SVG_URL);
+            // 1. CARREGAR SVG E CONTEÚDO DO TXT DOS EUA (EM PARALELO)
+            const [svgRes, usaTxtRes, dataRes] = await Promise.all([
+                fetch(CONFIG.SVG_URL),
+                fetch(CONFIG.USA_TXT_URL).then(r => r.text()).catch(() => ""),
+                fetch(CONFIG.SHEETS_API, { redirect: 'follow' }).then(r => r.json())
+            ]);
+
             mapContainer.innerHTML = await svgRes.text();
+            const usaGeomCode = usaTxtRes.trim();
 
-            // 2. CARREGAR DADOS
-            const dataRes = await fetch(CONFIG.SHEETS_API, { redirect: 'follow' });
-            const rawData = await dataRes.json();
-
-            // 3. ORGANIZAR DADOS (Lógica do Split corrigida)
+            // 2. ORGANIZAR DADOS DA PLANILHA
             const coverageMap = {};
-            rawData.forEach(row => {
+            dataRes.forEach(row => {
                 let rawPath = String(row['Paths 2'] || "").trim();
-                if (!rawPath) return;
+                let cleanId = "";
 
-                let countryPart = rawPath.split(/ M/)[0].trim();
-                let cleanId = countryPart.replace(/\s+/g, '_').toLowerCase();
+                // Verifica se é United States pelo nome ou se o Paths 2 está vazio/curto
+                const isUSA = String(row['Country']).toLowerCase().includes("united states");
 
+                if (isUSA) {
+                    cleanId = "united_states"; 
+                } else {
+                    let countryPart = rawPath.split(/ M/)[0].trim();
+                    cleanId = countryPart.replace(/\s+/g, '_').toLowerCase();
+                }
+
+                if (!cleanId) return;
                 if (!coverageMap[cleanId]) coverageMap[cleanId] = [];
                 coverageMap[cleanId].push(row);
             });
 
-            // 4. INTERATIVIDADE POR CLIQUE
+            // 3. INTERATIVIDADE
             const allPaths = Array.from(document.querySelectorAll('path'));
 
             Object.keys(coverageMap).forEach(idPlanilha => {
-                const el = allPaths.find(p => {
-                    const title = (p.getAttribute('title') || "").toLowerCase();
-                    const idAttr = (p.id || "").toLowerCase();
-                    return title === idPlanilha || idAttr === idPlanilha;
-                });
+                let el;
+
+                if (idPlanilha === "united_states") {
+                    // BUSCA ESPECIAL PARA EUA: Tenta pelo ID ou pelo conteúdo do TXT
+                    el = allPaths.find(p => 
+                        p.id.toLowerCase() === "united_states" || 
+                        p.getAttribute('title')?.toLowerCase() === "united states" ||
+                        (usaGeomCode && p.getAttribute('d')?.startsWith(usaGeomCode.substring(0, 50)))
+                    );
+                } else {
+                    // Busca padrão para os outros países
+                    el = allPaths.find(p => {
+                        const title = (p.getAttribute('title') || "").toLowerCase();
+                        const idAttr = (p.id || "").toLowerCase();
+                        return title === idPlanilha || idAttr === idPlanilha;
+                    });
+                }
 
                 if (el) {
                     el.classList.add('pais-ativo');
 
                     el.onclick = () => {
-                        // Limpar seleção anterior
                         const anterior = document.querySelector('.pais-selecionado');
                         if (anterior) anterior.classList.remove('pais-selecionado');
-
-                        // Destacar novo país
                         el.classList.add('pais-selecionado');
 
-                        // Montar conteúdo
                         const partners = coverageMap[idPlanilha];
                         const countryDisplay = partners[0].Country || idPlanilha.replace(/_/g, ' ');
 
@@ -68,17 +87,16 @@ document.addEventListener('DOMContentLoaded', async () => {
                                     <div class="partner-details">
                                         <b>Rede:</b> ${p['Mobile Network']}<br>
                                         <b>Tech:</b> ${p.Tech} | <b>VoLTE:</b> ${p.VoLTE}<br>
-                                        <small style="color:#00ff88;">Frequências: ${p.Frequencies}</small>
+                                        <small style="color:#00ff88;">Freq: ${p.Frequencies}</small>
                                     </div>
                                 </div>`;
                         });
 
                         tooltip.innerHTML = html;
-                        tooltip.scrollTop = 0; // Volta o scroll pro topo
+                        tooltip.scrollTop = 0;
 
-                        // Lógica do botão fechar
                         document.getElementById('btn-close').onclick = (e) => {
-                            e.stopPropagation(); // Impede de clicar no mapa atrás
+                            e.stopPropagation();
                             el.classList.remove('pais-selecionado');
                             tooltip.innerHTML = "📍 Selecione um país no mapa para ver os detalhes.";
                         };
@@ -86,7 +104,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 }
             });
 
-            tooltip.innerHTML = "📍 Pronto! Clique nos países destacados em verde.";
+            tooltip.innerHTML = "📍 Mapa carregado com suporte especial para EUA.";
 
         } catch (error) {
             console.error(error);
